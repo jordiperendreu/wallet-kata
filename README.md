@@ -1,6 +1,6 @@
 # Wallet Kata
 
-This Kata implements the implementation of a Wallet service
+This Kata implements the implementation of a Wallet service.
 
 Index:
 * [Problem definition](./doc/PROBLEM.md)
@@ -14,13 +14,13 @@ Index:
 
 # Introduction
 The objective of this solution is to build a simplified service for managing a Wallet system. 
-Initially only the endpoints include:
+The endpoints included:
 * Create wallet (not in the requirements but implemented for easier testing and realism)
-* Top-Up providing a Wallet, Amount and CardNumber
+* Top-Up providing a Wallet, Amount, and CardNumber
 * Get Wallet information
 
-Based in the code provided, I decided to use the **SQL version** and followed a layered
-structure similar at the one you provided with the existing code
+Based on the code provided, I decided to use the **SQL version** and followed a layered
+structure similar to the one you provided with the existing code.
 
 ## How to run
 To simplify the execution in different environments and avoid the dependency with Java and
@@ -37,29 +37,26 @@ This Makefile supports the following commands:
 * `make test-class`: Executes only the tests of an specific class
 * `make api-spec`: Generates the OpenAPI specification in [http://localhost:8888](http://localhost:8888)
 
-Even with the make commands ready to simplify your work, you can still use maven or your
-IDE to execute the application or run the tests
+Even with the make commands ready to simplify your work, you can still use maven or your IDE to 
+execute the application or run the tests.
 
 ## CI/CD
-To simplify the process during the development proccess and detect potential errors as soon as 
+To simplify the process during the development process and detect potential errors as soon as 
 possible, I've added a Github Action that executes all the tests each time the code is pushed.
 
 # Solution
 Based on my experience with Layered Architecture and Hexagonal Architecture + DDD,
-I've decided that in order to simplify the readability and simplicity of the kata, the
-Layered Architecture is the Go To for the solution.
+I've decided that to go for Layered Architecture focusing in the simplicity and readability of this 
+small kata.
 
 The implementation of the solution has been done following [ATDD](./doc/images/atdd.png) (Acceptance Test Driven
-Development). ATDD consist in create an Acceptance Tests covering the End To End, to cover
-the basic functionality to implement at the beginning, and then use TDD to build the
-feature with Unit Tests. Following this approach helped me to build the Kata with all the code covered by Unit and
-Acceptance(Integration) tests
+Development). ATDD consist in create an Acceptance Tests covering the End To End of a basic new 
+feature, and then use TDD to build the feature with Unit Tests. Following this approach helped me 
+to build the Kata with all the code covered by Unit and Acceptance(Integration) tests.
 
 ## Architecture
 
-The implementation of the solution is based on a layered architecture. I've doubts if to implement
-a Hexagonal Architecture with DDD or a layered architecture, but for simplicity and readability for
-this small kata, I thought that will be the best option.
+The implementation of the solution is based on a Layered Architecture.
 
 The application is divided in two packages and a shared package:
 * `stripeclient`: contains all features related with the Stripe connection (charge, refund)
@@ -88,7 +85,7 @@ I did change a little bit the structure of the provided code of the StripeServic
 create more robust tests.
 * Created a package `stripeclient` that contains all the code related with the StripeClient
 * Extracted the `ChargeRequest` from the `StripeService`. This was important because it allowed me
-  to make the unit tests more robust because I could validate the parameters of the API call
+  to make the unit tests more robust because I could validate the parameters of the API call.
   I suppose that the objective of having it internally is because we don't want anyone from outside the module uses this DTO, but
   adding it as protected can solve the problem
 * Created different layers to structure the information
@@ -103,8 +100,9 @@ I've created two fakes for the testing:
   to implement IntegrationTests for Wallet, I created a simplified fake version of StripeService
 
 To avoid to create the FakeStripeController and FakeStripeService, having an external service running
-in a lightweight docker in local could allow to use the URL in the configuration and all the
-IntegrationTests that interact with Stripe will use the StripeService implementation and not a fake.
+in a lightweight docker in the local environment, could allow to use the URL in the configuration, 
+so all the IntegrationTests that interact with Stripe will use the StripeService implementation 
+and not the fake.
 
 ### Wallet
 For the Wallet, I've created the next models:
@@ -112,9 +110,10 @@ For the Wallet, I've created the next models:
 * Transaction: belongs to a Wallet and contains the information of the Transaction
 
 #### Transaction Flow
-For the Transactions I've defined a flow in order to make it more real and robust. In production is
-very useful to have a transaction flow that helps to make async processes, it helps to recover in 
-case of any error, and also to have visiblity of the progress of the transaction.
+For the Transactions I've defined a flow with different status in order to make it more real and 
+robust. In production is very useful to have a transaction flow that helps to make async processes, 
+it helps to recover in case of any error, and also to have observability of the progress of the 
+transaction.
 
 Transaction flow:
 * INITIATED: Just when the Transaction is created. It has defined the Wallet and the amount
@@ -125,7 +124,8 @@ Transaction flow:
 <div style="text-align:center">
   <img src="./doc/images/transaction_status.png"  width="400">
 </div>
-This maps the top-up flow with the transaction status
+
+This shows the top-up flow with the transaction status changes:
 
 <div style="text-align:center">
   <img src="./doc/images/transaction_flow.png"  width="400">
@@ -147,8 +147,8 @@ You can see the specification with the swagger-ui using this command:
 * `make api-spec`: Generates the OpenAPI specification in [http://localhost:8888](http://localhost:8888)
 
 In the past, I've used in the past dependencies to implement the API documentation in the code, but 
-it is to verbose.  You can generate an interface with the definition and then have the 
-implementation clean, but I think that will complicate the readability for this kata
+it is too verbose.  You can generate an interface with the definition and then have the 
+implementation clean, but I think that will complicate the readability for this kata.
 
 ## Security
 As not requested not user based authentication neither authorization is implemented. 
@@ -167,24 +167,22 @@ With the current implementation in terms of concurrency and scalability:
 
 ### Concurrent top-ups 
 The process of the top-up reads the current wallet amount and updates it adding the top-up amount.
-In these cases the two top-ups are executed concurrently, the second top-up that will write the
-amount can update the amount based on an outdated value
+In these cases that two top-ups are executed concurrently, the second top-up that will write could
+do it using an outdated amount.
 
 To solve this problem I've implemented the `version` in the Wallet (optimistic locking). This implies
 that when the second top-up is executed in case that the wallet is updated between the read and the write
-the update will fail.
+the update will fail with an optimistic locking exception.
 
-In case of optimistic locking exception, the process will read the wallet again will retry up to 3
-times in total to update the Wallet amount
+In case of optimistic locking exception, the process will read the wallet current values and will 
+retry the process up to 3 times.
 
 ### Inconsistencies between Wallet and Transaction
-If it is not managed, could happen that the Transaction status and the Wallet amount are not consistent.
-
-To avoid this, I've implemented the different states of the Transaction, so, from PROCESSED to SUCCESS,
-the amount and the transaction status are updated in the same transaction.
+To avoid inconsistencies between the Wallet and the Transaction, the Wallet amount and the 
+transaction SUCCESS status are updated in the same transaction.
 
 ### Multiple user wallets
-Solved with a unique key in the wallet
+Solved with a unique key in the wallet.
 
 ### Missing transaction ID
 With the current solution can happen that the top-up is initiated, the charge in Stripe is done,
@@ -197,6 +195,8 @@ Most of the providers offers two solutions (or at least one of the two)
 * You "prepare" the payment, and the provider gives you the `payment_id`, so you can link it before
   doing the payment
 * You can provide your `order_id` to the payment, so you can link payment and your transaction
+
+Using one of the two solutions would solve the problem.
 
 ### Performance
 The indexes of the database currently are the needed ones:
