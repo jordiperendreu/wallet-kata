@@ -49,7 +49,7 @@ public class WalletControllerIT {
     public void whenCreatingWalletWithAUserID_thenReturnsTheWallet() throws Exception {
         UUID userId = UUID.randomUUID();
 
-        ResultActions response = mockMvc.perform(post("/v1/wallet/")
+        ResultActions response = mockMvc.perform(post("/v1/wallets/")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"userId\":\"" + userId + "\"}"));
 
@@ -69,7 +69,7 @@ public class WalletControllerIT {
         UUID userId = UUID.randomUUID();
         walletRepository.save(aNewWalletWithUserIdAndAmount(userId, new BigDecimal(0)));
 
-        ResultActions response = mockMvc.perform(post("/v1/wallet/")
+        ResultActions response = mockMvc.perform(post("/v1/wallets/")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"userId\":\"" + userId + "\"}"));
 
@@ -80,7 +80,7 @@ public class WalletControllerIT {
 
     @Test
     public void whenCreatingWalletWithoutAUserID_thenReturnsMissingBody() throws Exception {
-        ResultActions response = mockMvc.perform(post("/v1/wallet/")
+        ResultActions response = mockMvc.perform(post("/v1/wallets/")
             .contentType(MediaType.APPLICATION_JSON));
 
         response.andExpect(status().isBadRequest());
@@ -89,7 +89,7 @@ public class WalletControllerIT {
 
     @Test
     public void whenCreatingWalletWithEmptyUserId_thenReturnsInvalidUserId() throws Exception {
-        ResultActions response = mockMvc.perform(post("/v1/wallet/")
+        ResultActions response = mockMvc.perform(post("/v1/wallets/")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"userId\":\"\"}"));
 
@@ -99,7 +99,7 @@ public class WalletControllerIT {
 
     @Test
     public void whenCreatingWalletWithUserIdNotUUID_thenReturnsInvalidUserId() throws Exception {
-        ResultActions response = mockMvc.perform(post("/v1/wallet/")
+        ResultActions response = mockMvc.perform(post("/v1/wallets/")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"userId\":\"\"}"));
 
@@ -113,7 +113,7 @@ public class WalletControllerIT {
             new BigDecimal(0)));
 
         ResultActions response = mockMvc.perform(
-            post("/v1/wallet/" + wallet.getId() + "/actions/topup/")
+            post("/v1/wallets/" + wallet.getId() + "/actions/topup/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"cardNumber\":\"4242424242424242\",\"amount\":15}"));
 
@@ -129,7 +129,7 @@ public class WalletControllerIT {
             new BigDecimal(0)));
 
         ResultActions response = mockMvc.perform(
-            post("/v1/wallet/" + wallet.getId() + "/actions/topup/")
+            post("/v1/wallets/" + wallet.getId() + "/actions/topup/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"cardNumber\":\"4242424242424242\",\"amount\":3}"));
 
@@ -143,7 +143,7 @@ public class WalletControllerIT {
             new BigDecimal(0)));
 
         ResultActions response = mockMvc.perform(
-            post("/v1/wallet/" + wallet.getId() + "/actions/topup/")
+            post("/v1/wallets/" + wallet.getId() + "/actions/topup/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"cardNumber\":\"4242424242424242\",\"amount\":0}"));
 
@@ -157,7 +157,7 @@ public class WalletControllerIT {
             new BigDecimal(0)));
 
         ResultActions response = mockMvc.perform(
-            post("/v1/wallet/" + wallet.getId() + "/actions/topup/")
+            post("/v1/wallets/" + wallet.getId() + "/actions/topup/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"cardNumber\":\"\",\"amount\":15}"));
 
@@ -170,7 +170,7 @@ public class WalletControllerIT {
         Wallet wallet = walletRepository.save(aNewWalletWithUserIdAndAmount(UUID.randomUUID(),
             new BigDecimal(15)));
 
-        ResultActions response = mockMvc.perform(get("/v1/wallet/" + wallet.getId()));
+        ResultActions response = mockMvc.perform(get("/v1/wallets/" + wallet.getId()));
 
         response.andExpect(status().isOk());
         response.andExpect(jsonPath("$.id", is(wallet.getId().toString())));
@@ -180,7 +180,7 @@ public class WalletControllerIT {
 
     @Test
     public void whenGettingAWalletDoesntExist_thenReturnsNotFound() throws Exception {
-        ResultActions response = mockMvc.perform(get("/v1/wallet/" + UUID.randomUUID()));
+        ResultActions response = mockMvc.perform(get("/v1/wallets/" + UUID.randomUUID()));
 
         response.andExpect(status().isNotFound());
         response.andExpect(jsonPath("$.error", is("Wallet not found")));
