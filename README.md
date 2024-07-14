@@ -80,9 +80,6 @@ The layers defined in the production code are:
 For the tests, I've used the same structure as the production code but adding:
 * fakes: contains fake implementations
 
-A typical flow of the application is:
-TODO: ADD IMAGE
-
 All the communication between modules is done by the services(and DTOs) to reduce
 the coupling between modules. This could be useful in the future in case that we 
 want to split the application in multiple services, with that, changing the call to the
@@ -128,7 +125,11 @@ Transaction flow:
 * SUCCESS: After being processed by the payment provider, the Transaction is marked as SUCCESS and 
   the Wallet **is updated in the same transaction to ensure the consistency of the data**
 
-TODO: Add IMAGE
+![transaction_status.png](./doc/images/transaction_status.png)
+
+This maps the top-up flow with the transaction status
+
+![transaction_flow.png](./doc/images/transaction_flow.png)
 
 ### API
 The Wallet service exposes the following endpoints:
