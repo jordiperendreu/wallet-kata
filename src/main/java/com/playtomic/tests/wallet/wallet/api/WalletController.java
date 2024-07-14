@@ -24,7 +24,7 @@ public class WalletController {
     private final Logger log = LoggerFactory.getLogger(WalletController.class);
     private final WalletService walletService;
 
-    @PostMapping("/v1/wallets/")
+    @PostMapping("/v1/wallets")
     public ResponseEntity<WalletResponse> create(@Valid @RequestBody CreateWalletRequest request) {
         log.info("Creating wallet for user {}", request.getUserId());
 
@@ -33,7 +33,7 @@ public class WalletController {
         return new ResponseEntity<>(walletResponse, HttpStatus.CREATED);
     }
 
-    @PostMapping("/v1/wallets/{walletId}/actions/topup/")
+    @PostMapping("/v1/wallets/{walletId}/actions/topup")
     public ResponseEntity<WalletResponse> topUp(@PathVariable UUID walletId,
         @Valid @RequestBody TopUpRequest topUpRequest) {
         log.info("Top-up wallet {} with card number {} and amount {}", walletId,
