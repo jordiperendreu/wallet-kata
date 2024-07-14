@@ -3,6 +3,7 @@ package com.playtomic.tests.wallet.wallet.api;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -162,6 +163,27 @@ public class WalletControllerIT {
 
         response.andExpect(status().isBadRequest());
         response.andExpect(jsonPath("$.cardNumber", is("cardNumber must not be blank")));
+    }
+
+    @Test
+    public void whenGettingAWalletThatExists_thenReturnsTheWalletInformation() throws Exception {
+        Wallet wallet = walletRepository.save(aNewWalletWithUserIdAndAmount(UUID.randomUUID(),
+            new BigDecimal(15)));
+
+        ResultActions response = mockMvc.perform(get("/v1/wallet/" + wallet.getId()));
+
+        response.andExpect(status().isOk());
+        response.andExpect(jsonPath("$.id", is(wallet.getId().toString())));
+        response.andExpect(jsonPath("$.userId", is(wallet.getUserId().toString())));
+        response.andExpect(jsonPath("$.amount", is(15.0)));
+    }
+
+    @Test
+    public void whenGettingAWalletDoesntExist_thenReturnsNotFound() throws Exception {
+        ResultActions response = mockMvc.perform(get("/v1/wallet/" + UUID.randomUUID()));
+
+        response.andExpect(status().isNotFound());
+        response.andExpect(jsonPath("$.error", is("Wallet not found")));
     }
 
     private static Wallet aNewWalletWithUserIdAndAmount(UUID userId, BigDecimal amount) {

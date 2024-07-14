@@ -55,4 +55,22 @@ public class WalletControllerTest {
         assertEquals(wallet.getUserId(), actual.getUserId());
         assertEquals(wallet.getAmount(), actual.getAmount());
     }
+
+    @Test
+    public void whenGetWallet_thenTheWalletIsReturned() {
+        UUID walletId = UUID.randomUUID();
+        WalletResponse wallet = new WalletResponse(walletId, UUID.randomUUID(), new BigDecimal(0));
+        WalletService walletService = mock(WalletService.class);
+        when(walletService.get(walletId)).thenReturn(wallet);
+        WalletController walletController = new WalletController(walletService);
+
+        ResponseEntity<WalletResponse> response = walletController.get(walletId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        WalletResponse actual = response.getBody();
+        assertEquals(wallet.getId(), actual.getId());
+        assertEquals(wallet.getUserId(), actual.getUserId());
+        assertEquals(wallet.getAmount(), actual.getAmount());
+    }
+
 }
