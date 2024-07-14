@@ -49,13 +49,10 @@ Based on my experience with Layered Architecture and Hexagonal Architecture + DD
 I've decided that in order to simplify the readability and simplicity of the kata, the
 Layered Architecture is the Go To for the solution.
 
-The implementation of the solution has been done following ATDD (Acceptance Test Driven
+The implementation of the solution has been done following [ATDD](./doc/images/atdd.png) (Acceptance Test Driven
 Development). ATDD consist in create an Acceptance Tests covering the End To End, to cover
 the basic functionality to implement at the beginning, and then use TDD to build the
-feature with Unit Tests
-![atdd.png](./doc/images/atdd.png)
-
-Following this approach helped me to build the Kata with all the code covered by Unit and
+feature with Unit Tests. Following this approach helped me to build the Kata with all the code covered by Unit and
 Acceptance(Integration) tests
 
 ## Architecture
@@ -125,11 +122,14 @@ Transaction flow:
 * SUCCESS: After being processed by the payment provider, the Transaction is marked as SUCCESS and 
   the Wallet **is updated in the same transaction to ensure the consistency of the data**
 
-![transaction_status.png](./doc/images/transaction_status.png)
-
+<div style="text-align:center">
+  <img src="./doc/images/transaction_status.png"  width="400">
+</div>
 This maps the top-up flow with the transaction status
 
-![transaction_flow.png](./doc/images/transaction_flow.png)
+<div style="text-align:center">
+  <img src="./doc/images/transaction_flow.png"  width="400">
+</div>
 
 ### API
 The Wallet service exposes the following endpoints:
