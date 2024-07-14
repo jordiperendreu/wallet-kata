@@ -1,0 +1,151 @@
+openapi: 3.0.3
+info:
+  title: Wallet service
+  description: |-
+    A simplified service for managing a Wallet system.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8090
+tags:
+  - name: wallet
+    description: Everything about wallet
+paths:
+  /v1/wallet:
+    post:
+      tags:
+        - wallet
+      summary: Creates a new wallet
+      description: Creates a new wallet for a user
+      requestBody:
+        description: Create a new wallet
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWalletRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/wallet/{walletId}:
+    get:
+      tags:
+        - wallet
+      summary: Get a wallet
+      description: Get a wallet
+      parameters:
+        - name: walletId
+          in: path
+          description: Id of the wallet
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Wallet'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+  /v1/wallet/{walletId}/actions/topup:
+    post:
+      tags:
+        - wallet
+      summary: Top-up a wallet
+      description: Top-up a wallet
+      parameters:
+        - name: walletId
+          in: path
+          description: Id of the wallet
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Create a new wallet
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TopupRequest'
+        required: true
+      responses:
+        '202':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Wallet'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+components:
+  schemas:
+    CreateWalletRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+    TopupRequest:
+      type: object
+      properties:
+        cardNumber:
+          type: string
+          example: "4242 4242 4242 4242"
+        amount:
+          type: number
+          format: decimal
+          example: 15.0
+    Wallet:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: decimal
+    ErrorResponse:
+      type: object
+      properties:
+        errorName:
+          type: string
+          example: "Detailed message"
+    NotFoundResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "$object not found"

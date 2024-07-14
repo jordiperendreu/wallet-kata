@@ -12,3 +12,6 @@ test-class:
 
 dev:
 	$(MVN) spring-boot:run
+
+api-spec:
+	docker run -p 8888:8080 -e SWAGGER_JSON=/app/openapi.yaml -v ./doc/api.yml:/app/openapi.yaml swaggerapi/swagger-ui
