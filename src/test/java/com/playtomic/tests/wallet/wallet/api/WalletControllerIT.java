@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import com.playtomic.tests.wallet.wallet.model.Wallet;
+import com.playtomic.tests.wallet.wallet.repository.TransactionRepository;
 import com.playtomic.tests.wallet.wallet.repository.WalletRepository;
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -34,8 +35,12 @@ public class WalletControllerIT {
     @Autowired
     private WalletRepository walletRepository;
 
+    @Autowired
+    private TransactionRepository transactionRepository;
+
     @AfterEach
     public void tearDown() {
+        transactionRepository.deleteAll();
         walletRepository.deleteAll();
     }
 
@@ -52,8 +57,7 @@ public class WalletControllerIT {
         response.andExpect(jsonPath("$.userId", is(userId.toString())));
         response.andExpect(jsonPath("$.amount", is(0)));
         String jsonResponse = response.andReturn().getResponse().getContentAsString();
-        String walletIdString = JsonPath.parse(jsonResponse).read("$.id", String.class);
-        UUID walletId = UUID.fromString(walletIdString);
+        UUID walletId = UUID.fromString(JsonPath.parse(jsonResponse).read("$.id", String.class));
         Wallet actual = walletRepository.findById(walletId).orElseThrow();
         assertEquals(userId, actual.getUserId());
         assertEquals(0, BigDecimal.valueOf(0).compareTo(actual.getAmount()));
@@ -100,6 +104,64 @@ public class WalletControllerIT {
 
         response.andExpect(status().isBadRequest());
         response.andExpect(jsonPath("$.userId", is("userID should be a valid UUID")));
+    }
+
+    @Test
+    public void whenTopUp_thenReturnsTheWalletWithTheAmountAdded() throws Exception {
+        Wallet wallet = walletRepository.save(aNewWalletWithUserIdAndAmount(UUID.randomUUID(),
+            new BigDecimal(0)));
+
+        ResultActions response = mockMvc.perform(
+            post("/v1/wallet/" + wallet.getId() + "/actions/topup/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"cardNumber\":\"4242424242424242\",\"amount\":15}"));
+
+        response.andExpect(status().isAccepted());
+        response.andExpect(jsonPath("$.id", is(wallet.getId().toString())));
+        response.andExpect(jsonPath("$.userId", is(wallet.getUserId().toString())));
+        response.andExpect(jsonPath("$.amount", is(15.0)));
+    }
+
+    @Test
+    public void whenTopUpAndAnErrorsIsProduced_thenReturnsTheError() throws Exception {
+        Wallet wallet = walletRepository.save(aNewWalletWithUserIdAndAmount(UUID.randomUUID(),
+            new BigDecimal(0)));
+
+        ResultActions response = mockMvc.perform(
+            post("/v1/wallet/" + wallet.getId() + "/actions/topup/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"cardNumber\":\"4242424242424242\",\"amount\":3}"));
+
+        response.andExpect(status().isBadRequest());
+        response.andExpect(jsonPath("$.error", is("Amount too small")));
+    }
+
+    @Test
+    public void whenTopUpZeroAmount_thenReturnsAnError() throws Exception {
+        Wallet wallet = walletRepository.save(aNewWalletWithUserIdAndAmount(UUID.randomUUID(),
+            new BigDecimal(0)));
+
+        ResultActions response = mockMvc.perform(
+            post("/v1/wallet/" + wallet.getId() + "/actions/topup/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"cardNumber\":\"4242424242424242\",\"amount\":0}"));
+
+        response.andExpect(status().isBadRequest());
+        response.andExpect(jsonPath("$.amount", is("amount must be a positive number")));
+    }
+
+    @Test
+    public void whenTopUpEmptyCardAmount_thenReturnsAnError() throws Exception {
+        Wallet wallet = walletRepository.save(aNewWalletWithUserIdAndAmount(UUID.randomUUID(),
+            new BigDecimal(0)));
+
+        ResultActions response = mockMvc.perform(
+            post("/v1/wallet/" + wallet.getId() + "/actions/topup/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"cardNumber\":\"\",\"amount\":15}"));
+
+        response.andExpect(status().isBadRequest());
+        response.andExpect(jsonPath("$.cardNumber", is("cardNumber must not be blank")));
     }
 
     private static Wallet aNewWalletWithUserIdAndAmount(UUID userId, BigDecimal amount) {

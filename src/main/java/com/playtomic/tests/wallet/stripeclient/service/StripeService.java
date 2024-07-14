@@ -2,16 +2,15 @@ package com.playtomic.tests.wallet.stripeclient.service;
 
 import com.playtomic.tests.wallet.stripeclient.dto.ChargeRequest;
 import com.playtomic.tests.wallet.stripeclient.dto.Payment;
-import com.playtomic.tests.wallet.stripeclient.infrastructure.StripeRestTemplateResponseErrorHandler;
 import com.playtomic.tests.wallet.stripeclient.exception.StripeServiceException;
+import com.playtomic.tests.wallet.stripeclient.infrastructure.StripeRestTemplateResponseErrorHandler;
+import java.math.BigDecimal;
+import java.net.URI;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import java.math.BigDecimal;
-import java.net.URI;
 
 
 /**
@@ -65,6 +64,4 @@ public class StripeService {
         // Object.class because we don't read the body here.
         restTemplate.postForEntity(chargesUri.toString(), null, Object.class, paymentId);
     }
-
-
 }
