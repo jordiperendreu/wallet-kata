@@ -1,6 +1,6 @@
 # Wallet Kata
 
-This Kata implements the implementation of a Wallet service.
+This Kata implements a simple Wallet service.
 
 Index:
 
@@ -87,8 +87,8 @@ For the tests, I've used the same structure as the production code but adding:
 
 All the communication between modules is done by the services (and DTOs) to reduce the coupling
 between modules. This could be useful in the future in case that we want to split the application
-into multiple services, with that, changing the call to the service to an HTTP call the information
-will be the same.
+into multiple services, with that, changing the call to the service to an HTTP call will be easy
+because the information used will be the same.
 
 ### StripeClient
 
@@ -99,7 +99,7 @@ create more robust tests.
 * Extracted the `ChargeRequest` from the `StripeService`. This was important because it allowed me
   to make the unit tests more robust because I could validate the parameters of the API call. I
   suppose that the objective of having it internally is because we don't want anyone from outside
-  the module to use this DTO, but adding it as protected can solve the problem.
+  the module to use this DTO, but I've prioritized the testability.
 * Created different layers to structure the information
 
 I've created two fakes for the testing:
@@ -114,10 +114,10 @@ I've created two fakes for the testing:
   order to be able to implement Integration Tests for Wallet, I created a simplified fake version of
   StripeService.
 
-To avoid creating the FakeStripeController and FakeStripeService, having an external service running
-in a lightweight Docker in the local environment could allow using the URL in the configuration, so
-all the Integration Tests that interact with Stripe will use the StripeService implementation and
-not the fake.
+We could avoid creating the FakeStripeController and FakeStripeService, having an external service
+running in a lightweight Docker in the local environment could allow using the URL in the
+configuration, so all the Integration Tests that interact with Stripe will use the StripeService
+implementation and not the fake.
 
 ### Wallet
 
@@ -129,44 +129,48 @@ For the Wallet, I've created the next models:
 #### Transaction Flow
 
 For the Transactions, I've defined a flow with different statuses in order to make it more real and
-robust. In production, it is very useful to have a transaction flow that helps to make async
-processes, it helps to recover in case of any error, and also to have observability of the progress
-of the transaction.
+robust. In production, it is very useful to have a transaction flow to recover in case of any error,
+also to have observability of the progress of the transaction, or allows to make async processes,
+like for example, create the transaction in the top-up call, but execute the charge in a background
+process.
 
 Transaction flow:
 
-* INITIATED: Just when the Transaction is created. It has defined the Wallet and the amount.
-* PROCESSED: Once the Transaction is processed in the payment provider but not yet in the Wallet.
-* SUCCESS: After being processed by the payment provider, the Transaction is marked as SUCCESS and
-  the Wallet **is updated in the same transaction to ensure the consistency of the data**.
+* **INITIATED**: Just when the Transaction is created. It has defined the Wallet to who belongs, and
+  the amount.
+* **PROCESSED**: Once the Transaction is processed in the payment provider but not yet in the
+  Wallet. It has the Wallet to who belongs, the amount, and the PaymentId.
+* **SUCCESS**: After being processed by the payment provider, the Transaction is marked as SUCCESS.
+  The Wallet amount **is updated in the same transaction is updated to ensure the consistency of the
+  data**.
 
-<div style="text-align:center" alt="Transaction Status Flow">
-  <img src="./doc/images/transaction_status.png"  width="400">
+<div style="text-align:center">
+  <img src="./doc/images/transaction_status.png" width="400" alt="Transaction Status Flow">
 </div>
 
 This shows the top-up flow with the transaction status changes:
 
-<div style="text-align:center" alt="Transaction Flow matching the Transaction Status">
-  <img src="./doc/images/transaction_flow.png"  width="400">
+<div style="text-align:center">
+  <img src="./doc/images/transaction_flow.png" width="400" alt="Transaction Flow matching the Transaction Status">
 </div>
 
 ### API
 
 The Wallet service exposes the following endpoints:
 
-- **Create Wallet**: `POST /wallets` - Creates a new wallet.
+- **Create Wallet**: `POST /v1/wallets` - Creates a new wallet.
     - **userId**: The ID of the user that owns the wallet.
-- **TopUp Wallet**: `POST /wallets/{id}/actions/topup` - Adds funds to a wallet.
+- **TopUp Wallet**: `POST /v1/wallets/{id}/actions/topup` - Adds funds to a wallet.
     - **cardNumber**: The credit card number associated with the wallet.
     - **amount**: The amount to be added to the wallet.
-- **Get Wallet Info**: `GET /wallets/{id}` - Retrieves information about a wallet.
-
-For detailed API specifications, refer to the [OpenAPI specification](./doc/api.yml).
+- **Get Wallet Info**: `GET /v1/wallets/{id}` - Retrieves information about a wallet.
 
 You can see the specification with the Swagger UI using this command:
 
 * `make api-spec`: Generates the OpenAPI specification
   at [http://localhost:8888](http://localhost:8888)
+
+For detailed yml with API specifications, refer to the [API specification](./doc/api.yml).
 
 In the past, I've used dependencies to implement the API documentation in the code, but it is too
 verbose. You can generate an interface with the definition and then have the implementation clean,
@@ -181,7 +185,7 @@ Spring Security can help you implement authentication (using JWT tokens or OAuth
 authorization (role-based) to ensure that only authorized users can access certain endpoints.
 
 All database interactions in this application are protected against SQL injection by using the ORM,
-which prevents direct execution of SQL queries with user-provided data. Ensuring that all data
+which prevents direct execution of SQL queries with user-provided data, ensuring that all data
 access operations are safe and secure.
 
 ## Scalability and concurrency
@@ -225,9 +229,18 @@ Most providers offer two solutions (or at least one of the two):
   doing the payment.
 * You can provide your `order_id` to the payment, so you can link the payment and your transaction.
 
-Using one
+Using one of the two solutions would solve the problem.
 
-of the two solutions would solve the problem.
+### Transactions Conciliation
+
+For any reason, during the top-up process can be interrupted and not completed totally, and with the
+current implementation this can happen.
+
+The solution could be a reconciliation process to try to recover the transaction and continue with
+the process, or a mixed system to notify us to review the problem. In this case, it would be very
+useful to implement the commented about the possibility to link the Transaction with the provider
+from the beginning, because with this, most of the errors could be solved automatically as we would
+have all the information to make programmatic validations with the Payment Provider.
 
 ### Performance
 
@@ -247,6 +260,9 @@ GlobalExceptionHandler.
 * Add more observability parameters like `createdAt` or `updatedAt`.
 * Split the WalletService into a service by use case to segregate the logic and tests in smaller
   classes.
-* Error handling in case we want to be more fine-grained.
-* Create MotherObjects to simplify the tests and reduce duplicated functions between test classes.
+* Error handling in case we want it to be more fine-grained.
+* Create MotherObjects to simplify the tests and reduce duplicated mother functions between test
+  classes.
+* Add more information in the transaction, like a TransactionType to distinguish between top-ups and
+  the different purchases.
 * Add more features like getting the Transactions of a wallet paginated.
