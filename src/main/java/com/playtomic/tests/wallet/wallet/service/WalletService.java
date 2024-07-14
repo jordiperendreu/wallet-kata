@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -63,12 +64,16 @@ public class WalletService {
         return WalletResponse.from(wallet);
     }
 
+    public WalletResponse get(UUID walletId) {
+        return WalletResponse.from(getWalletById(walletId));
+    }
+
     private Wallet getWalletById(UUID walletId) {
         Wallet waller;
         try {
             waller = walletRepository.findById(walletId).orElseThrow();
         } catch (NoSuchElementException e) {
-            throw new GetWalletError("Wallet not found");
+            throw new ResourceNotFoundException("Wallet not found");
         } catch (Exception e) {
             log.error("Failed to get wallet {}", walletId, e);
             throw new GetWalletError("Failed to get wallet");
