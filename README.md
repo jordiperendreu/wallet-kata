@@ -6,7 +6,7 @@ Index:
 * [Problem definition](./doc/PROBLEM.md)
 * [Introduction](#introduction)
   * [How to run](#how-to-run)
-  * [CI/CD](#ci-cd)
+  * [CI/CD](#cicd)
 * [Solution](#solution)
   * [Architecture](#architecture)
   * [Security](#security)
@@ -211,3 +211,5 @@ in the controller, the error responses are managed by the 'infrastructure' layer
 * Add more observability parameters like `createdAt` or `updatedAt`
 * Split the WalletService in a service by use case to segregate the logic and tests in smaller classes
 * Error handling in case that we want to be more fine-grained
+* Create MotherObjects to simplify the tests and reduce duplicated functions between test classes
+* Add more features like get the Transactions of a wallet paginated
