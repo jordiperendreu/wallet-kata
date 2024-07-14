@@ -31,10 +31,11 @@ Prerequisites:
 - Docker
 
 This Makefile supports the following commands:
-* `make dev`: Starts the application in `http://localhost:8090`
+* `make dev`: Starts the application in [http://localhost:8090](http://localhost:8090)
 * `make test`: Executes all the tests, unit and integration
 * `make test-unit`: Executes only the unit tests
 * `make test-class`: Executes only the tests of an specific class
+* `make api-spec`: Generates the OpenAPI specification in [http://localhost:8888](http://localhost:8888)
 
 Even with the make commands ready to simplify your work, you can still use maven or your
 IDE to execute the application or run the tests
@@ -141,8 +142,8 @@ The Wallet service exposes the following endpoints:
 
 For detailed API specifications, refer to the [OpenAPI specification](./doc/api.yml).
 
-TODO Makefile with the OpenAPI specification
-docker run -p 80:8080 -e SWAGGER_JSON=/app/openapi.yaml -v /path/to/openapi.yaml:/app/openapi.yaml swaggerapi/swagger-ui
+You can see the specification with the swagger-ui using this command:
+* `make api-spec`: Generates the OpenAPI specification in [http://localhost:8888](http://localhost:8888)
 
 In the past, I've used in the past dependencies to implement the API documentation in the code, but 
 it is to verbose.  You can generate an interface with the definition and then have the 
