@@ -53,7 +53,7 @@ The implementation of the solution has been done following ATDD (Acceptance Test
 Development). ATDD consist in create an Acceptance Tests covering the End To End, to cover
 the basic functionality to implement at the beginning, and then use TDD to build the
 feature with Unit Tests
-TODO: ADD IMAGE
+![atdd.png](./doc/images/atdd.png)
 
 Following this approach helped me to build the Kata with all the code covered by Unit and
 Acceptance(Integration) tests
@@ -205,3 +205,8 @@ The indexes of the database currently are the needed ones:
 ### Error handling
 Right now **all the errors from the DB or the StripeService are handled**. To simplify the management
 in the controller, the error responses are managed by the 'infrastructure' layer in the GlobalExceptionHandler
+
+### Potential Improvements
+* Add more observability parameters like `createdAt` or `updatedAt`
+* Split the WalletService in a service by use case to segregate the logic and tests in smaller classes
+* Error handling in case that we want to be more fine-grained
