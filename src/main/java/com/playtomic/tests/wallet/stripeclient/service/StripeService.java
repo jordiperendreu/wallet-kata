@@ -1,7 +1,9 @@
-package com.playtomic.tests.wallet.service;
+package com.playtomic.tests.wallet.stripeclient.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
+import com.playtomic.tests.wallet.stripeclient.dto.ChargeRequest;
+import com.playtomic.tests.wallet.stripeclient.dto.Payment;
+import com.playtomic.tests.wallet.stripeclient.infrastructure.StripeRestTemplateResponseErrorHandler;
+import com.playtomic.tests.wallet.stripeclient.exception.StripeServiceException;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -64,15 +66,5 @@ public class StripeService {
         restTemplate.postForEntity(chargesUri.toString(), null, Object.class, paymentId);
     }
 
-    @AllArgsConstructor
-    private static class ChargeRequest {
 
-        @NonNull
-        @JsonProperty("credit_card")
-        String creditCardNumber;
-
-        @NonNull
-        @JsonProperty("amount")
-        BigDecimal amount;
-    }
 }
