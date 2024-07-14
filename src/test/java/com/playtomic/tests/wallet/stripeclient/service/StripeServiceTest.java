@@ -1,4 +1,4 @@
-package com.playtomic.tests.wallet.service.impl;
+package com.playtomic.tests.wallet.stripeclient.service;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -8,13 +8,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.playtomic.tests.wallet.service.Payment;
-import com.playtomic.tests.wallet.service.StripeAmountTooSmallException;
-import com.playtomic.tests.wallet.service.StripeServiceException;
-import com.playtomic.tests.wallet.service.StripeService;
+import com.playtomic.tests.wallet.stripeclient.dto.ChargeRequest;
+import com.playtomic.tests.wallet.stripeclient.dto.Payment;
+import com.playtomic.tests.wallet.stripeclient.exception.StripeAmountTooSmallException;
+import com.playtomic.tests.wallet.stripeclient.exception.StripeServiceException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 
 import java.math.BigDecimal;
@@ -54,5 +55,19 @@ public class StripeServiceTest {
         Payment actual = stripeService.charge("4242 4242 4242 4242", new BigDecimal(15));
 
         assertEquals("1234", actual.getId());
+    }
+
+    @Test
+    public void whenCharge_thenTheChargeInStripeIsDone() throws StripeServiceException {
+        ArgumentCaptor<ChargeRequest> chargeRequestCaptor = ArgumentCaptor.forClass(
+            ChargeRequest.class);
+        when(restTemplateMock.postForObject(eq(chargesUri), chargeRequestCaptor.capture(),
+            eq(Payment.class))).thenReturn(new Payment("1234"));
+
+        stripeService.charge("4242 4242 4242 4242", new BigDecimal(15));
+
+        ChargeRequest chargeRequest = chargeRequestCaptor.getValue();
+        assertEquals("4242 4242 4242 4242", chargeRequest.getCreditCardNumber());
+        assertEquals(new BigDecimal(15), chargeRequest.getAmount());
     }
 }
