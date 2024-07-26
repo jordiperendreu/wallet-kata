@@ -145,6 +145,30 @@ public class WalletServiceTest {
     }
 
     @Test
+    public void whenTopUpAndUpdateWalletFailsTwiceButLastTryWorks_thenTheTransactionIsAndUpdatedToSUCCESS() {
+        UUID userID = UUID.randomUUID();
+        WalletRepository walletRepository = mock(WalletRepository.class);
+        UUID walletId = UUID.randomUUID();
+        Wallet wallet = new Wallet(walletId, 0L, userID, new BigDecimal(5));
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(walletRepository.save(wallet))
+            .thenThrow(new OptimisticLockingFailureException("Error updating the Wallet"))
+            .thenThrow(new OptimisticLockingFailureException("Error updating the Wallet"))
+            .thenReturn(wallet);
+        TransactionRepository transactionRepository = aTransactionRepositoryMock();
+        ArgumentCaptor<Transaction> transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
+        when(transactionRepository.save(transactionCaptor.capture())).thenReturn(new Transaction())
+            .thenReturn(new Transaction());
+        WalletService walletService = new WalletService(walletRepository, transactionRepository,
+            aStripeServiceMock(), aPlatformTransactionManager());
+
+        walletService.topUp(walletId, "cardNumber", new BigDecimal(10));
+
+        Transaction transactionProcessed = transactionCaptor.getAllValues().get(2);
+        assertEquals(TransactionStatus.SUCCESS, transactionProcessed.getStatus());
+    }
+
+    @Test
     public void whenTopUp_thenStripeIsCalled() {
         UUID userId = UUID.randomUUID();
         String cardNumber = "cardNumber";

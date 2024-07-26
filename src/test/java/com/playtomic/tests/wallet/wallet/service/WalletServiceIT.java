@@ -17,6 +17,8 @@ import com.playtomic.tests.wallet.wallet.model.Wallet;
 import com.playtomic.tests.wallet.wallet.repository.TransactionRepository;
 import com.playtomic.tests.wallet.wallet.repository.WalletRepository;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -157,16 +159,24 @@ public class WalletServiceIT {
         Runnable topUpOperation = () -> {
             walletService.topUp(wallet.getId(), "cardNumber", new BigDecimal(10));
         };
-        Thread t1 = new Thread(topUpOperation);
-        Thread t2 = new Thread(topUpOperation);
 
-        t1.start();
-        t2.start();
-        t1.join();
-        t2.join();
+        int numberOfThreads = 10;
+        List<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < numberOfThreads; i++) {
+            Thread thread = new Thread(topUpOperation);
+            threads.add(thread);
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            thread.join();
+        }
 
         Wallet updatedWallet = walletRepository.findById(wallet.getId()).orElseThrow();
-        assertEquals(0, new BigDecimal(20).compareTo(updatedWallet.getAmount()));
+        List<Transaction> transactions = transactionRepository.findAllByStatus(
+            TransactionStatus.SUCCESS);
+        BigDecimal expectedWalletAmount = new BigDecimal(10).multiply(
+            BigDecimal.valueOf(transactions.size()));
+        assertEquals(0, expectedWalletAmount.compareTo(updatedWallet.getAmount()));
     }
 
     private static Wallet aNewWalletWithUserIdAndAmount(UUID userId, BigDecimal amount) {
