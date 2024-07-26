@@ -134,7 +134,7 @@ public class WalletService {
             retries++;
         }
 
-        if (retries > MAX_WALLET_RETRIES) {
+        if (!updated && (retries > MAX_WALLET_RETRIES)) {
             transaction.setStatus(TransactionStatus.FAILED);
             saveTransaction(transaction);
             throw new ProcessingChargeError("Error updating the Wallet");
